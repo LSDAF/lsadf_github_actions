@@ -1,2 +1,10 @@
-.idea/
+# Ignore everything
+*
+
+# But not these files...
 !.github/
+!.gitignore
+!README.md
+
+# ...even if they are in subdirectories
+!.github/**
