@@ -5,10 +5,6 @@ run-name: Build and push image for commit ${{ github.event.inputs.git_sha }}
 on:
   workflow_dispatch:
     inputs:
-      token:
-        description: 'GitHub Token to use to push docker image'
-        required: true
-        type: string
       git_sha:
         description: 'Git SHA commit to build'
         required: true
@@ -42,7 +38,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME }}
-          password: ${{ github.event.inputs.token }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Tag & Push
         uses: docker/build-push-action@v6
