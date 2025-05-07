@@ -5,6 +5,10 @@ run-name: Delete Docker image with tag ${{ github.event.inputs.image_tag }}
 on:
   workflow_dispatch:
     inputs:
+      token:
+        description: 'GitHub Token to use to push docker image'
+        required: true
+        type: string
       image_tag:
         description: 'Tag of the image to delete (e.g., a Git SHA)'
         required: true
@@ -25,5 +29,5 @@ jobs:
           owner: LSDAF
           name: lsadf_api
           # NOTE: using Personal Access Token
-          token: ${{ secrets.PAT }}
+          token: ${{ github.event.inputs.token }}
           tag: ${{ github.event.inputs.image_tag }}
