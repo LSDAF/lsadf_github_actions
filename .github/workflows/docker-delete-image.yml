@@ -68,15 +68,19 @@ jobs:
             exit 1
           fi
 
-          # Check if the image exists
-          IMAGE_EXISTS=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-            https://api.github.com/orgs/LSDAF/packages/container/lsadf_api/versions | \
-            jq -r --arg TAG "${{ github.event.inputs.image_tag }}" '.[] | select(.metadata.container.tags[] == $TAG) | .id')
+          # Check if the image exists using Docker CLI
+          echo "Checking if image ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }} exists..."
 
-          if [[ -z "$IMAGE_EXISTS" ]]; then
+          # Login to GitHub Container Registry
+          echo "${{ github.event.inputs.github_token }}" | docker login ghcr.io -u $USERNAME --password-stdin
+
+          # Try to inspect the image (this will fail if the image doesn't exist)
+          if ! docker manifest inspect ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }} > /dev/null 2>&1; then
             echo "::error::Image with tag ${{ github.event.inputs.image_tag }} does not exist."
             exit 1
           fi
+
+          echo "Image with tag ${{ github.event.inputs.image_tag }} exists. Proceeding with deletion."
 
       - name: Delete image
         uses: bots-house/ghcr-delete-image-action@v1.1.0

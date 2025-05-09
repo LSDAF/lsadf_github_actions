@@ -87,13 +87,17 @@ jobs:
             exit 1
           fi
 
-          # Check if the image already exists
-          IMAGE_EXISTS=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-            https://api.github.com/orgs/LSDAF/packages/container/lsadf_api/versions | \
-            jq -r --arg TAG "${{ github.event.inputs.git_sha }}" '.[] | select(.metadata.container.tags[] == $TAG) | .id')
+          # Check if the image already exists using Docker CLI
+          echo "Checking if image ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }} already exists..."
 
-          if [[ -n "$IMAGE_EXISTS" ]]; then
+          # Login to GitHub Container Registry
+          echo "${{ github.event.inputs.github_token }}" | docker login ghcr.io -u $USERNAME --password-stdin
+
+          # Try to inspect the image (this will fail if the image doesn't exist)
+          if docker manifest inspect ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }} > /dev/null 2>&1; then
             echo "Image with tag ${{ github.event.inputs.git_sha }} already exists."
+          else
+            echo "Image with tag ${{ github.event.inputs.git_sha }} does not exist yet. Will build and push."
           fi
 
       - name: 📥 Checkout code at specific commit
