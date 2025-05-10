@@ -164,11 +164,12 @@ jobs:
         run: |
           echo $PWD
           ls
+          echo "pwd=$PWD" >> $GITHUB_OUTPUT
 
       - name: Tag & Push
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64, linux/arm64
-          file: lsadf_backend/docker/Dockerfile
+          file: ${{ steps.prep.outputs.pwd}}/lsadf_backend/docker/Dockerfile
           push: true
           tags: ${{ steps.prep.outputs.tags }}
