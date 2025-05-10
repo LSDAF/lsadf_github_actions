@@ -134,6 +134,7 @@ jobs:
           cd lsadf_backend/
           git checkout ${{ github.event.inputs.git_sha }}
           echo "Checked out at ${{ github.event.inputs.git_sha }}"
+          cd ../
 
       - name: Prepare tags
         id: prep
@@ -157,6 +158,12 @@ jobs:
 
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
           echo "Tags to be used: $TAGS"
+          
+      - name: Check current working directory
+        id: check_cwd
+        run: |
+          echo $PWD
+          ls
 
       - name: Tag & Push
         uses: docker/build-push-action@v6
