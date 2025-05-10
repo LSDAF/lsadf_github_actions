@@ -1,6 +1,6 @@
 name: 🐳 Build and Push Docker Image by SHA
 
-run-name: Build and push image for commit ${{ github.event.inputs.git_sha }}
+run-name: Build and push image for commit ${{ github.event.inputs.git_sha }} with tags
 
 on:
   workflow_dispatch:
@@ -13,6 +13,16 @@ on:
         description: 'GitHub Personal Access Token with read:org permissions'
         required: true
         type: string
+      latest:
+        description: 'Tag the image as latest'
+        required: false
+        type: boolean
+        default: false
+      additional_tags:
+        description: 'Additional tags (semicolon-separated)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build-and-push:
@@ -96,6 +106,7 @@ jobs:
           # Try to inspect the image (this will fail if the image doesn't exist)
           if docker manifest inspect ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }} > /dev/null 2>&1; then
             echo "Image with tag ${{ github.event.inputs.git_sha }} already exists."
+            echo "Note: The workflow will continue and may add additional tags to the existing image."
           else
             echo "Image with tag ${{ github.event.inputs.git_sha }} does not exist yet. Will build and push."
           fi
@@ -119,10 +130,33 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.event.inputs.github_token }}
 
+      - name: Prepare tags
+        id: prep
+        run: |
+          TAGS="ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }}"
+
+          # Add latest tag if requested
+          if [[ "${{ github.event.inputs.latest }}" == "true" ]]; then
+            TAGS="$TAGS,ghcr.io/lsdaf/lsadf_api:latest"
+          fi
+
+          # Add additional tags if provided
+          if [[ -n "${{ github.event.inputs.additional_tags }}" ]]; then
+            IFS=';' read -ra ADDITIONAL_TAGS <<< "${{ github.event.inputs.additional_tags }}"
+            for tag in "${ADDITIONAL_TAGS[@]}"; do
+              if [[ -n "$tag" ]]; then
+                TAGS="$TAGS,ghcr.io/lsdaf/lsadf_api:$tag"
+              fi
+            done
+          fi
+
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "Tags to be used: $TAGS"
+
       - name: Tag & Push
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64, linux/arm64
           file: docker/Dockerfile
           push: true
-          tags: ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }}
+          tags: ${{ steps.prep.outputs.tags }}

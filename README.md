@@ -26,6 +26,8 @@ To use this workflow:
 4. Enter the following parameters:
    - **Git SHA commit to build**: The Git commit SHA or tag to build the image from
    - **GitHub Personal Access Token**: A GitHub Personal Access Token with `read:org` and `write:packages` permissions
+   - **Tag the image as latest** (optional): Boolean flag to determine whether to also tag the image as "latest"
+   - **Additional tags** (optional): Semicolon-separated list of additional tags to apply to the image (e.g., "v1.0;stable;production"). If empty, only the Git SHA will be used as a tag.
 
 #### Error Handling
 
