@@ -23,7 +23,7 @@ jobs:
       packages: write
     steps:
       - name: 🔒 Check user permissions
-        id: check_permissions
+        id: check_user_permissions
         run: |
           # Get the authenticated user's information
           USER_INFO=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
@@ -68,6 +68,9 @@ jobs:
             exit 1
           fi
 
+      - name: 🔒 Check if image exists
+        id: check_docker_image
+        run: |
           # Check if the image exists using Docker CLI
           echo "Checking if image ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }} exists..."
 

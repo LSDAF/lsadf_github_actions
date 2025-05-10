@@ -81,22 +81,21 @@ jobs:
             exit 1
           fi
 
-          # Check if the Dockerfile exists
-          if [ ! -f "docker/Dockerfile" ]; then
-            echo "::error::Dockerfile not found at docker/Dockerfile. Cannot build the image."
-            exit 1
-          fi
-
+      - name: 🔒 Check github commit existence
+        id: check_github_commit
+        run: |
           # Check if the repository exists
           REPO_EXISTS=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-            https://api.github.com/repos/LSDAF/lsadf_api/commits/${{ github.event.inputs.git_sha }})
+            https://api.github.com/repos/LSDAF/lsadf_backend/commits/${{ github.event.inputs.git_sha }})
 
           ERROR=$(echo "$REPO_EXISTS" | jq -r '.message')
           if [[ "$ERROR" == "Not Found" ]]; then
             echo "::error::Git commit SHA ${{ github.event.inputs.git_sha }} not found in the repository"
             exit 1
           fi
-
+      - name: 🔒 Check docker image existence
+        id: check_docker_image
+        run: |
           # Check if the image already exists using Docker CLI
           echo "Checking if image ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }} already exists..."
 
@@ -111,11 +110,19 @@ jobs:
             echo "Image with tag ${{ github.event.inputs.git_sha }} does not exist yet. Will build and push."
           fi
 
-      - name: 📥 Checkout code at specific commit
-        uses: actions/checkout@v4
+      - name: Git clone lsadf_backend project
+        uses: GuillaumeFalourd/clone-github-repo-action@v2.3
         with:
-          ref: ${{ github.event.inputs.git_sha }}
-          lfs: true
+          branch: 'master'
+          owner: 'LSDAF'
+          repository: 'lsadf_backend'
+
+      - name: 📥 Checkout code at specific commit
+        run: |
+          cd lsadf_backend/
+          git checkout ${{ github.event.inputs.git_sha }}
+          echo "Checked out at ${{ github.event.inputs.git_sha }}"
+          
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
