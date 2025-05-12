@@ -117,3 +117,4 @@ jobs:
           context: ${{ steps.check_cwd.outputs.pwd }}/lsadf_backend/
           push: true
           tags: ${{ steps.prep.outputs.tags }}
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=LSADF API container image.
