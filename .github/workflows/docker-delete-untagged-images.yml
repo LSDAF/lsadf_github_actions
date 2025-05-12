@@ -31,4 +31,4 @@ jobs:
           owner: LSDAF
           name: lsadf_api
           token: ${{ secrets.GHCR_PAT }}
-          untagged-keep-latest: 0
+          untagged-older-than: 0
