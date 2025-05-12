@@ -19,6 +19,7 @@
 !.github/
 !.gitignore
 !README.md
-
+!LICENSE
+!NOTICE
 # ...even if they are in subdirectories
 !.github/**
