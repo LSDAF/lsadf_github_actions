@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Cleanup Untagged Images
+name: 🗑 Cleanup Untagged Images
 
 on:
   # every sunday at 00:00
