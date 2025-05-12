@@ -68,14 +68,18 @@ jobs:
             exit 1
           fi
 
+      - name: 🔐 Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.event.inputs.github_token }}
+
       - name: 🔒 Check if image exists
         id: check_docker_image
         run: |
           # Check if the image exists using Docker CLI
           echo "Checking if image ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }} exists..."
-
-          # Login to GitHub Container Registry
-          echo "${{ github.event.inputs.github_token }}" | docker login ghcr.io -u $USERNAME --password-stdin
 
           # Try to inspect the image (this will fail if the image doesn't exist)
           if ! docker manifest inspect ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }} > /dev/null 2>&1; then
