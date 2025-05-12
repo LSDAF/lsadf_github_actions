@@ -69,3 +69,7 @@ The workflow will fail with specific error messages in the following cases:
 To use these workflows, you need:
 - For building and pushing images: Organization admin role and a GitHub Personal Access Token with `read:org` and `write:packages` permissions
 - For deleting images: Organization admin role and a GitHub Personal Access Token with `read:org` and `delete:packages` permissions
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
