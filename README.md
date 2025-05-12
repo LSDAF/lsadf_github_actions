@@ -64,11 +64,32 @@ The workflow will fail with specific error messages in the following cases:
 - If the user is not an organization admin
 - If the specified image doesn't exist
 
+### 🗑 Cleanup Untagged Images
+
+This workflow automatically deletes untagged Docker images from GitHub Container Registry (ghcr.io) for the LSDAF organization.
+
+#### Scheduling
+
+The workflow runs automatically:
+- Every Sunday at 00:00 UTC to clean up untagged images
+- Can also be triggered manually via the Actions tab
+
+#### Usage
+
+To manually trigger this workflow:
+
+1. Go to the Actions tab in the repository
+2. Select "🗑 Cleanup Untagged Images"
+3. Click "Run workflow"
+
+No input parameters are required as the workflow is pre-configured to clean up untagged images for the "lsadf_api" repository.
+
 ## Required Permissions
 
 To use these workflows, you need:
 - For building and pushing images: Organization admin role and a GitHub Personal Access Token with `read:org` and `write:packages` permissions
 - For deleting images: Organization admin role and a GitHub Personal Access Token with `read:org` and `delete:packages` permissions
+- For cleaning up untagged images: Organization admin role and a GitHub Personal Access Token with `delete:packages` permissions
 
 ## License
 
