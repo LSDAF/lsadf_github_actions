@@ -28,8 +28,7 @@ jobs:
     steps:
       - uses: bots-house/ghcr-delete-image-action@v1.1.0
         with:
-          # NOTE: at now only orgs is supported
-          owner: bots-house
-          name: some-web-service
+          owner: LSDAF
+          name: lsadf_api
           token: ${{ secrets.GHCR_PAT }}
           untagged-keep-latest: 0
