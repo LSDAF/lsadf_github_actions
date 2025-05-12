@@ -12,14 +12,12 @@ check_docker_image_exists() {
 
   echo "Checking if image $image_name exists..."
 
-  # Try to inspect the image (this will fail if the image doesn't exist)
   if docker manifest inspect "$image_name" > /dev/null 2>&1; then
     echo "$exists_message"
-    return 0
   else
     echo "$not_exists_message"
-    return 1
   fi
+  return 0
 }
 
 # Function to prepare Docker image tags
