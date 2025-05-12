@@ -49,51 +49,14 @@ jobs:
       packages: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: 🔒 Check user token permissions
         id: check_permissions
         run: |
-          # Get the authenticated user's information
-          USER_INFO=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-            https://api.github.com/user)
-
-          # Extract username
-          USERNAME=$(echo "$USER_INFO" | jq -r '.login')
-          echo "Authenticated as: $USERNAME"
-
-          # Check if the user is an organization member and their role
-          ORG_MEMBERSHIP=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-            https://api.github.com/orgs/LSDAF/memberships/$USERNAME)
-
-          # Check if the response contains an error
-          ERROR=$(echo "$ORG_MEMBERSHIP" | jq -r '.message')
-          if [[ "$ERROR" == "Not Found" ]]; then
-            echo "::error::User $USERNAME is not a member of the LSDAF organization"
-            exit 1
-          fi
-
-          # Extract the user's role in the organization
-          ROLE=$(echo "$ORG_MEMBERSHIP" | jq -r '.role')
-          echo "User role in organization: $ROLE"
-
-          # Check if the user is an admin
-          if [[ "$ROLE" == "admin" ]]; then
-            echo "User is an organization admin. Proceeding with the workflow."
-          elif [[ "$ROLE" == "member" ]]; then
-            # Check if the user has maintainer permissions
-            ORG_PERMISSION=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-              https://api.github.com/orgs/LSDAF/memberships/$USERNAME | jq -r '.role')
-
-            if [[ "$ORG_PERMISSION" == "maintainer" ]]; then
-              echo "::error::User $USERNAME is a maintainer. Only organization admins can push images."
-              exit 1
-            else
-              echo "::error::User $USERNAME is a regular member. Only organization admins can push images."
-              exit 1
-            fi
-          else
-            echo "::error::Unknown role: $ROLE. Only organization admins can push images."
-            exit 1
-          fi
+          source ./scripts/user_permissions.sh
+          check_user_permissions "${{ github.event.inputs.github_token }}" || exit 1
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -111,16 +74,10 @@ jobs:
       - name: 🔒 Check docker image existence
         id: check_docker_image
         run: |
-          # Check if the image already exists using Docker CLI
-          echo "Checking if image ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }} already exists..."
-
-          # Try to inspect the image (this will fail if the image doesn't exist)
-          if docker manifest inspect ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }} > /dev/null 2>&1; then
-            echo "Image with tag ${{ github.event.inputs.git_sha }} already exists."
-            echo "Note: The workflow will continue and may add additional tags to the existing image."
-          else
-            echo "Image with tag ${{ github.event.inputs.git_sha }} does not exist yet. Will build and push."
-          fi
+          source ./scripts/docker_utils.sh
+          check_docker_image_exists "ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }}" \
+            "Image with tag ${{ github.event.inputs.git_sha }} already exists.\nNote: The workflow will continue and may add additional tags to the existing image." \
+            "Image with tag ${{ github.event.inputs.git_sha }} does not exist yet. Will build and push."
 
       - name: Git clone lsadf_backend project
         uses: GuillaumeFalourd/clone-github-repo-action@v2.3
@@ -139,22 +96,8 @@ jobs:
       - name: Prepare tags
         id: prep
         run: |
-          TAGS="ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.git_sha }}"
-
-          # Add latest tag if requested
-          if [[ "${{ github.event.inputs.latest }}" == "true" ]]; then
-            TAGS="$TAGS,ghcr.io/lsdaf/lsadf_api:latest"
-          fi
-
-          # Add additional tags if provided
-          if [[ -n "${{ github.event.inputs.additional_tags }}" ]]; then
-            IFS=';' read -ra ADDITIONAL_TAGS <<< "${{ github.event.inputs.additional_tags }}"
-            for tag in "${ADDITIONAL_TAGS[@]}"; do
-              if [[ -n "$tag" ]]; then
-                TAGS="$TAGS,ghcr.io/lsdaf/lsadf_api:$tag"
-              fi
-            done
-          fi
+          source ./scripts/docker_utils.sh
+          TAGS=$(prepare_docker_tags "ghcr.io/lsdaf/lsadf_api" "${{ github.event.inputs.git_sha }}" "${{ github.event.inputs.latest }}" "${{ github.event.inputs.additional_tags }}")
 
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
           echo "Tags to be used: $TAGS"

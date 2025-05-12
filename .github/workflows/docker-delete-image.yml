@@ -36,51 +36,14 @@ jobs:
     permissions:
       packages: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: 🔒 Check user permissions
         id: check_user_permissions
         run: |
-          # Get the authenticated user's information
-          USER_INFO=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-            https://api.github.com/user)
-
-          # Extract username
-          USERNAME=$(echo "$USER_INFO" | jq -r '.login')
-          echo "Authenticated as: $USERNAME"
-
-          # Check if the user is an organization member and their role
-          ORG_MEMBERSHIP=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-            https://api.github.com/orgs/LSDAF/memberships/$USERNAME)
-
-          # Check if the response contains an error
-          ERROR=$(echo "$ORG_MEMBERSHIP" | jq -r '.message')
-          if [[ "$ERROR" == "Not Found" ]]; then
-            echo "::error::User $USERNAME is not a member of the LSDAF organization"
-            exit 1
-          fi
-
-          # Extract the user's role in the organization
-          ROLE=$(echo "$ORG_MEMBERSHIP" | jq -r '.role')
-          echo "User role in organization: $ROLE"
-
-          # Check if the user is an admin
-          if [[ "$ROLE" == "admin" ]]; then
-            echo "User is an organization admin. Proceeding with the workflow."
-          elif [[ "$ROLE" == "member" ]]; then
-            # Check if the user has maintainer permissions
-            ORG_PERMISSION=$(curl -s -H "Authorization: token ${{ github.event.inputs.github_token }}" \
-              https://api.github.com/orgs/LSDAF/memberships/$USERNAME | jq -r '.role')
-
-            if [[ "$ORG_PERMISSION" == "maintainer" ]]; then
-              echo "::error::User $USERNAME is a maintainer. Only organization admins can delete images."
-              exit 1
-            else
-              echo "::error::User $USERNAME is a regular member. Only organization admins can delete images."
-              exit 1
-            fi
-          else
-            echo "::error::Unknown role: $ROLE. Only organization admins can delete images."
-            exit 1
-          fi
+          source ./scripts/user_permissions.sh
+          check_user_permissions "${{ github.event.inputs.github_token }}" || exit 1
 
       - name: 🔐 Login to GHCR
         uses: docker/login-action@v3
@@ -92,16 +55,10 @@ jobs:
       - name: 🔒 Check if image exists
         id: check_docker_image
         run: |
-          # Check if the image exists using Docker CLI
-          echo "Checking if image ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }} exists..."
-
-          # Try to inspect the image (this will fail if the image doesn't exist)
-          if ! docker manifest inspect ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }} > /dev/null 2>&1; then
-            echo "::error::Image with tag ${{ github.event.inputs.image_tag }} does not exist."
-            exit 1
-          fi
-
-          echo "Image with tag ${{ github.event.inputs.image_tag }} exists. Proceeding with deletion."
+          source ./scripts/docker_utils.sh
+          check_docker_image_exists "ghcr.io/lsdaf/lsadf_api:${{ github.event.inputs.image_tag }}" \
+            "Image with tag ${{ github.event.inputs.image_tag }} exists. Proceeding with deletion." \
+            "::error::Image with tag ${{ github.event.inputs.image_tag }} does not exist." || exit 1
 
       - name: Delete image
         uses: bots-house/ghcr-delete-image-action@v1.1.0
