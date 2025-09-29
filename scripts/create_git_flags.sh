@@ -1,14 +1,14 @@
 cd lsadf_backend/ || exit 1
 
 # validate params
-    if [[ -z "${{ github.event.inputs.git_sha }}" ]]; then
+    if [[ -z "$GIT_SHA" ]]; then
       echo "Error: git_sha input is required."
       exit 1
     fi
 
 
     # Parse the additional tags
-    IFS=';' read -ra TAGS <<< "${{ github.event.inputs.additional_tags }}"
+    IFS=';' read -ra TAGS <<< "$GIT_SHA"
 
     for tag in "${TAGS[@]}"; do
       echo "Processing git tag: $tag"
