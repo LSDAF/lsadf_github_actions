@@ -93,15 +93,6 @@ jobs:
           echo "Checked out at ${{ github.event.inputs.git_sha }}"
           cd ../
 
-      - name: Prepare tags
-        id: prep
-        run: |
-          source ./scripts/docker_utils.sh
-          TAGS=$(prepare_docker_tags "ghcr.io/lsdaf/lsadf_api" "${{ github.event.inputs.git_sha }}" "${{ github.event.inputs.latest }}" "${{ github.event.inputs.additional_tags }}")
-
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
-          echo "Tags to be used: $TAGS"
-
       - name: Check current working directory
         id: check_cwd
         run: |
@@ -118,3 +109,10 @@ jobs:
           push: true
           tags: ${{ steps.prep.outputs.tags }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=LSADF API container image.
+
+      - name: 🏷️ Create Git Tags
+        if: ${{ github.event.inputs.additional_tags != '' }}
+        run: |
+          GIT_SHA=${{ github.event.inputs.git_sha }} source ./scripts/create_git_flags.sh
+        env:
+          GITHUB_TOKEN: ${{ github.event.inputs.github_token }}
