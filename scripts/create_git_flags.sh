@@ -1,4 +1,4 @@
-    cd lsadf_backend/ || exit 1
+cd lsadf_backend/ || exit 1
 
 # validate params
     if [[ -z "${{ github.event.inputs.git_sha }}" ]]; then
@@ -35,4 +35,6 @@
     done
 
     # Push all tags to the repository
+    git config user.name "GitHub Actions"
+    git config user.email "actions@github.com"
     git push origin --tags
