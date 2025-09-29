@@ -15,6 +15,13 @@ cd lsadf_backend/ || exit 1
     IFS=';' read -ra TAGS <<< "$GIT_SHA"
 
     for tag in "${TAGS[@]}"; do
+
+      # ignore git sha tag
+      if [[ "$tag" == "$GIT_SHA" ]]; then
+        echo "Ignoring git SHA tag: $tag"
+        continue
+      fi
+
       echo "Processing git tag: $tag"
 
       # Check if tag already exists
