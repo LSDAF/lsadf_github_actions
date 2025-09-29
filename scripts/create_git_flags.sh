@@ -5,6 +5,10 @@ cd lsadf_backend/ || exit 1
       echo "Error: git_sha input is required."
       exit 1
     fi
+    if [[ -z "$GIT_ADDITIONAL_TAGS" ]]; then
+      echo "No provided additional tags, exiting."
+      exit 0
+    fi
 
 
     # Parse the additional tags
