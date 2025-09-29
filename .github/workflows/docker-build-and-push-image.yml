@@ -93,6 +93,15 @@ jobs:
           echo "Checked out at ${{ github.event.inputs.git_sha }}"
           cd ../
 
+      - name: Prepare tags
+        id: prep
+        run: |
+          source ./scripts/docker_utils.sh
+          TAGS=$(prepare_docker_tags "ghcr.io/lsdaf/lsadf_api" "${{ github.event.inputs.git_sha }}" "${{ github.event.inputs.latest }}" "${{ github.event.inputs.additional_tags }}")
+
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "Tags to be used: $TAGS"
+
       - name: Check current working directory
         id: check_cwd
         run: |
