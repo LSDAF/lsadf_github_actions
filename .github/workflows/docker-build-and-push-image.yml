@@ -122,6 +122,6 @@ jobs:
       - name: 🏷️ Create Git Tags
         if: ${{ github.event.inputs.additional_tags != '' }}
         run: |
-          GIT_ADDITIONAL_TAGS=${{github.event.input.additional_tags}} GIT_SHA=${{ github.event.inputs.git_sha }} source ./scripts/create_git_flags.sh
+          GIT_ADDITIONAL_TAGS=${{ github.event.inputs.additional_tags }} GIT_SHA=${{ github.event.inputs.git_sha }} source ./scripts/create_git_flags.sh
         env:
           GITHUB_TOKEN: ${{ github.event.inputs.github_token }}
