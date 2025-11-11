@@ -1,8 +1,17 @@
-export TOKEN=""
+#!/bin/sh
+
 export HOSTNAME="https://api.github.com"
 export PACKAGE="lsadf_api"
 export OWNER="LSDAF"
-export TAG=""
+
+# Check if both parameters are provided
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <TOKEN> <TAG>"
+    exit 1
+fi
+
+TOKEN=$1
+TAG=$2
 
 VERSION_IDS=$(curl -s -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/vnd.github+json" \
