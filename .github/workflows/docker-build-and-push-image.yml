@@ -27,6 +27,14 @@ on:
         description: 'GitHub Personal Access Token with read:org permissions'
         required: true
         type: string
+      module:
+        description: 'Module to build (lsadf_api)'
+        required: false
+        type: choice
+        options:
+          - lsadf_api
+          - lsadf_admin
+        default: 'lsadf_api'
       latest:
         description: 'Tag the image as latest'
         required: false
