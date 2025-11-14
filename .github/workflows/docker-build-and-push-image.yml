@@ -14,7 +14,7 @@
 
 name: 🐳 Build and Push Docker Image by SHA
 
-run-name: Build and push image for commit ${{ github.event.inputs.git_sha }} with tags
+run-name: (${{ github.event.inputs.module }}) Build and push image for commit ${{ github.event.inputs.git_sha }} with tags
 
 on:
   workflow_dispatch:
