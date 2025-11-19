@@ -123,6 +123,7 @@ jobs:
           platforms: linux/amd64, linux/arm64
           file: ${{ steps.check_cwd.outputs.pwd }}/lsadf_backend/docker/Dockerfile
           context: ${{ steps.check_cwd.outputs.pwd }}/lsadf_backend/
+          build-args: MODULE=${{ github.event.inputs.module }}
           push: true
           tags: ${{ steps.prep.outputs.tags }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=LSADF API container image.
