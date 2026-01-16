@@ -35,6 +35,15 @@ on:
           - lsadf_api
           - lsadf_admin
         default: 'lsadf_api'
+      arch:
+        description: 'Target architecture (amd64, arm64, or both)'
+        required: false
+        type: choice
+        options:
+          - amd64
+          - arm64
+          - amd64 & arm64
+        default: 'amd64 & arm64'
       latest:
         description: 'Tag the image as latest'
         required: false
@@ -127,7 +136,7 @@ jobs:
       - name: Tag & Push
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64, linux/arm64
+          platforms: ${{ github.event.inputs.arch == 'amd64 & arm64' && 'linux/amd64,linux/arm64' || (github.event.inputs.arch == 'amd64' && 'linux/amd64' || 'linux/arm64') }}
           file: ${{ steps.check_cwd.outputs.pwd }}/lsadf_backend/docker/Dockerfile
           context: ${{ steps.check_cwd.outputs.pwd }}/lsadf_backend/
           build-args: MODULE=${{ github.event.inputs.module }}
